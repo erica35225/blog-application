@@ -1,5 +1,6 @@
 package com.blog.blogapplication.services.Impl;
 
+import com.blog.blogapplication.Event.UserAddedEvent;
 import com.blog.blogapplication.entities.User;
 import com.blog.blogapplication.exceptions.ResourceNotFoundException;
 import com.blog.blogapplication.payloads.ApiResponse;
@@ -8,6 +9,7 @@ import com.blog.blogapplication.repositories.UserRepo;
 import com.blog.blogapplication.services.UserService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -19,12 +21,20 @@ public class UserServiceImpl implements UserService {
     private UserRepo userRepo;
     @Autowired
     private ModelMapper modelMapper;
+    @Autowired
+    private ApplicationEventPublisher applicationEventPublisher;
 
     @Override
     public UserDTO createUser(UserDTO userDto) {
         User user = modelMapper.map(userDto, User.class);
         this.userRepo.save(user);
+      //  eventPublisher.publishAddUserEvent(userDto);
+        publishUserEvent(new UserAddedEvent(userDto));
         return userDto;
+    }
+
+    public void publishUserEvent(UserAddedEvent event) {
+        applicationEventPublisher.publishEvent(event);
     }
 
     @Override
